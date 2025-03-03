@@ -396,6 +396,13 @@ elif seccion == "📊 Análisis Exploratorio":
     # Distribución de precios con tema coherente
     st.subheader("💰 Distribución de Precios")
     
+    # Detectar el modo actual (claro u oscuro)
+    is_dark_theme = st.get_option("theme.base") == "dark"
+
+    # Configurar colores basados en el tema
+    text_color = "white" if is_dark_theme else "black"
+    background_color = "transparent"  # O usa colores específicos según el tema
+    
     # Tabs para ofrecer diferentes visualizaciones
     precio_tab1, precio_tab2 = st.tabs(["Histograma (Plotly)", "Histograma (Seaborn)"])
     
@@ -438,89 +445,131 @@ elif seccion == "📊 Análisis Exploratorio":
         st.pyplot(fig)
     
     # Relación entre quilates y precio con mejor presentación
-    st.markdown("""<div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin: 20px 0;">
-                <h3 style="margin-top: 0;">📈 Relación entre Quilates y Precio</h3>
-                </div>""", 
-                unsafe_allow_html=True)
+# Primero, detectar el tema actual
+is_dark_theme = st.get_option("theme.base") == "dark"
+text_color = "white" if is_dark_theme else "black"
+bg_color = "#1e1e1e" if is_dark_theme else "#f8f9fa"
+border_color = "#333333" if is_dark_theme else "#e1e1e1"
+
+# Encabezado adaptado al tema
+st.markdown(f"""<div style="background-color: {bg_color}; padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid {border_color};">
+            <h3 style="margin-top: 0; color: {text_color};">📈 Relación entre Quilates y Precio</h3>
+            </div>""", 
+            unsafe_allow_html=True)
+
+scatter_tab1, scatter_tab2 = st.tabs(["Plotly Interactivo", "Seaborn"])
+
+with scatter_tab1:
+    color_var = st.radio("Colorear por:", ["cut", "color", "clarity"], horizontal=True)
     
-    scatter_tab1, scatter_tab2 = st.tabs(["Plotly Interactivo", "Seaborn"])
+    fig = px.scatter(df_filtered, 
+                    x="carat", 
+                    y="price", 
+                    color=color_var,
+                    size="depth",
+                    hover_name="cut",
+                    hover_data=["clarity", "color", "table"],
+                    title="Relación entre quilates y precio",
+                    color_discrete_sequence=px.colors.qualitative.Bold,
+                    opacity=0.7,
+                    trendline="ols")
     
-    with scatter_tab1:
-        color_var = st.radio("Colorear por:", ["cut", "color", "clarity"], horizontal=True)
-        
-        fig = px.scatter(df_filtered, 
-                        x="carat", 
-                        y="price", 
-                        color=color_var,
-                        size="depth",
-                        hover_name="cut",
-                        hover_data=["clarity", "color", "table"],
-                        title="Relación entre quilates y precio",
-                        color_discrete_sequence=px.colors.qualitative.Bold,
-                        opacity=0.7,
-                        trendline="ols")
-        
-        fig.update_layout(
-            plot_bgcolor="white",
-            xaxis_title="Quilates",
-            yaxis_title="Precio ($)",
-            height=500,
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=1.02,
-                xanchor="right",
-                x=1
-            )
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    # Configurar el tema según el modo claro/oscuro
+    template = "plotly_dark" if is_dark_theme else "plotly_white"
+    bg_color_plotly = "rgba(0,0,0,0)" if is_dark_theme else "white"
     
-    with scatter_tab2:
-        st.markdown('<p style="color: #4364f7; font-weight: bold; font-size: 14px;">Gráfico generado con Seaborn</p>', unsafe_allow_html=True)
-        
-        # Configurar un estilo limpio para Seaborn
-        sns.set_style("whitegrid")
-        
-        fig, ax = plt.subplots(figsize=(10, 6))
-        
-        # Si hay demasiados puntos, tomamos una muestra para no sobrecargar la visualización
-        sample_size = min(5000, len(df_filtered))
-        sampled_data = df_filtered.sample(sample_size, random_state=42) if len(df_filtered) > sample_size else df_filtered
-        
-        # Gráfico de dispersión con regresión
-        sns.regplot(
-            x="carat", 
-            y="price", 
-            data=sampled_data, 
-            scatter_kws={"alpha": 0.6, "color": "#4364f7"}, 
-            line_kws={"color": "#ff6b6b"},
-            ax=ax
-        )
-        
-        # Overlay con un scatterplot coloreado por tipo de corte
-        sns.scatterplot(
-            x="carat", 
-            y="price", 
-            hue="cut", 
-            data=sampled_data, 
-            alpha=0.6, 
-            palette="coolwarm",
-            ax=ax
-        )
-        
-        # Personalización visual
-        ax.set_title("Relación entre Quilates y Precio por Tipo de Corte", fontsize=16, pad=20)
-        ax.set_xlabel("Quilates", fontsize=12)
-        ax.set_ylabel("Precio ($)", fontsize=12)
-        
-        # Ajustar leyenda
-        plt.legend(title="Tipo de Corte", bbox_to_anchor=(1.05, 1), loc='upper left')
-        
-        # Ajustar diseño
-        plt.tight_layout()
-        
-        # Mostrar el gráfico
-        st.pyplot(fig)
+    fig.update_layout(
+        template=template,
+        plot_bgcolor=bg_color_plotly,
+        paper_bgcolor=bg_color_plotly,
+        font_color=text_color,
+        xaxis_title="Quilates",
+        yaxis_title="Precio ($)",
+        height=500,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            font=dict(color=text_color)
+        ),
+        title_font=dict(color=text_color)
+    )
+    
+    # Asegurar que los ejes también usen el color correcto
+    fig.update_xaxes(title_font_color=text_color, tickfont_color=text_color, gridcolor=border_color)
+    fig.update_yaxes(title_font_color=text_color, tickfont_color=text_color, gridcolor=border_color)
+    
+    st.plotly_chart(fig, use_container_width=True)
+
+with scatter_tab2:
+    # Adaptar el color del texto explicativo según el tema
+    st.markdown(f'<p style="color: {"#6fb1fc" if is_dark_theme else "#4364f7"}; font-weight: bold; font-size: 14px;">Gráfico generado con Seaborn</p>', unsafe_allow_html=True)
+    
+    # Configuración de Seaborn adaptada al tema
+    plt_style = "dark_background" if is_dark_theme else "whitegrid"
+    sns.set_style(plt_style)
+    
+    # Configuración de colores para matplotlib
+    plt.rcParams.update({
+        "text.color": text_color,
+        "axes.labelcolor": text_color,
+        "axes.edgecolor": text_color,
+        "xtick.color": text_color,
+        "ytick.color": text_color,
+        "figure.facecolor": "transparent",
+        "axes.facecolor": "transparent" if is_dark_theme else "#f0f0f0"
+    })
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    # Si hay demasiados puntos, tomamos una muestra para no sobrecargar la visualización
+    sample_size = min(5000, len(df_filtered))
+    sampled_data = df_filtered.sample(sample_size, random_state=42) if len(df_filtered) > sample_size else df_filtered
+    
+    # Gráfico de dispersión con regresión
+    sns.regplot(
+        x="carat", 
+        y="price", 
+        data=sampled_data, 
+        scatter_kws={"alpha": 0.6, "color": "#6fb1fc" if is_dark_theme else "#4364f7"}, 
+        line_kws={"color": "#ff8080" if is_dark_theme else "#ff6b6b"},
+        ax=ax
+    )
+    
+    # Overlay con un scatterplot coloreado por tipo de corte
+    scatter = sns.scatterplot(
+        x="carat", 
+        y="price", 
+        hue="cut", 
+        data=sampled_data, 
+        alpha=0.6, 
+        palette="coolwarm" if not is_dark_theme else "viridis",
+        ax=ax
+    )
+    
+    # Personalización visual con colores adaptados al tema
+    ax.set_title("Relación entre Quilates y Precio por Tipo de Corte", 
+                color=text_color, fontsize=16, pad=20)
+    ax.set_xlabel("Quilates", color=text_color, fontsize=12)
+    ax.set_ylabel("Precio ($)", color=text_color, fontsize=12)
+    
+    # Ajustar colores de la leyenda
+    legend = ax.get_legend()
+    for text in legend.get_texts():
+        text.set_color(text_color)
+    legend.get_title().set_color(text_color)
+    
+    # Ajustar color de los ticks
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
+        label.set_color(text_color)
+    
+    # Ajustar diseño
+    plt.tight_layout()
+    
+    # Mostrar el gráfico
+    st.pyplot(fig)
     
     # Comparativa de precios por tipo de corte
     st.markdown("""<div style="background-color: #f8f9fa; padding: 15px; border-radius: 10px; margin: 20px 0;">
