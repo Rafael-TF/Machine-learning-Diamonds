@@ -1213,15 +1213,48 @@ if seccion == "🧪 Simulador":
     🔍 **Introduce las características del diamante y descubre su precio y calidad estimada.**  
     """)
 
-    # Cargar modelos entrenados
-    try:
-        with st.spinner("Cargando modelos..."):
-            modelo_regresion = joblib.load("model_regression.joblib")
-            modelo_clasificacion = joblib.load("model_classification.joblib")
-        st.success("✅ Modelos cargados correctamente")
-    except Exception as e:
-        st.error(f"❌ Error al cargar los modelos: {e}")
-        st.stop()
+    # =================== Verificar si los modelos existen ===================
+    modelo_reg_path = "/tmp/model_regression.joblib"
+    modelo_clas_path = "/tmp/model_classification.joblib"
+
+    modelo_reg_url = "https://drive.google.com/uc?id=1_BXt5mN391zac33WmvliAOKD7KalBzRe"
+    modelo_clas_url = "https://drive.google.com/uc?id=1O7E7Q4u3bn4AuVn5tkIizLhgtDnqTBew"
+
+    if "modelo_regresion" not in st.session_state:
+        if not os.path.exists(modelo_reg_path):
+            st.warning("⚠️ No se encontró un modelo de regresión guardado. Descargando desde Google Drive...")
+            try:
+                with st.spinner("Descargando modelo de regresión..."):
+                    gdown.download(modelo_reg_url, modelo_reg_path, quiet=False)
+                st.success("✅ Modelo de regresión descargado correctamente")
+            except Exception as e:
+                st.error(f"❌ Error al descargar el modelo de regresión: {e}")
+
+        try:
+            with st.spinner("Cargando el modelo de regresión..."):
+                st.session_state.modelo_regresion = joblib.load(modelo_reg_path)
+            st.success("✅ Modelo de regresión cargado correctamente")
+        except Exception as e:
+            st.error(f"❌ Error al cargar el modelo de regresión: {e}")
+            st.stop()
+
+    if "modelo_clasificacion" not in st.session_state:
+        if not os.path.exists(modelo_clas_path):
+            st.warning("⚠️ No se encontró un modelo de clasificación guardado. Descargando desde Google Drive...")
+            try:
+                with st.spinner("Descargando modelo de clasificación..."):
+                    gdown.download(modelo_clas_url, modelo_clas_path, quiet=False)
+                st.success("✅ Modelo de clasificación descargado correctamente")
+            except Exception as e:
+                st.error(f"❌ Error al descargar el modelo de clasificación: {e}")
+
+        try:
+            with st.spinner("Cargando el modelo de clasificación..."):
+                st.session_state.modelo_clasificacion = joblib.load(modelo_clas_path)
+            st.success("✅ Modelo de clasificación cargado correctamente")
+        except Exception as e:
+            st.error(f"❌ Error al cargar el modelo de clasificación: {e}")
+            st.stop()
 
     # Formulario interactivo
     with st.form("simulator_form"):
