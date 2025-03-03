@@ -32,7 +32,6 @@ st.set_page_config(
 )
 
 # =================== Sidebar de Navegación ===================
-st.sidebar.image("https://cdn-icons-png.flaticon.com/512/3039/3039513.png", width=80)
 st.sidebar.title("💎 Diamond Analytics")
 st.sidebar.markdown("---")
 
