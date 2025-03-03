@@ -1281,6 +1281,8 @@ if seccion == "🧪 Simulador":
 
     if simulate_button:
         try:
+            modelo_regresion = st.session_state.modelo_regresion
+            modelo_clasificacion = st.session_state.modelo_clasificacion
             input_data = pd.DataFrame({
                 'carat': [carat],
                 'depth': [depth],
