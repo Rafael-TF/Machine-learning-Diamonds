@@ -986,29 +986,31 @@ if seccion == "📈 Regresión":
             closest_carat = avg_price_per_carat.index[np.abs(avg_price_per_carat.index - carat).argmin()]
             price_for_closest_carat = avg_price_per_carat.loc[closest_carat]
 
-            # =================== Mostrar Resultados ===================
-            st.markdown("<h3 style='color:#3A86FF;'>📊 Resultados de la Predicción</h3>", unsafe_allow_html=True)
-
+           # =================== Visualización del Resultado ===================
+            st.markdown("<h3 style='color:#3A86FF;'>📊 Resultado de la Predicción</h3>", unsafe_allow_html=True)
+            
             st.markdown(f"""
-            <div style="background-color: #eaf4ff; padding: 30px; border-radius: 15px; border-left: 8px solid #3A86FF; text-align: center; box-shadow: 0px 4px 12px rgba(0,0,0,0.1);">
-                <h2 style="color: #3A86FF; margin-top: 0; font-size: 36px;">💰 Precio Estimado: ${precio_predicho:,.2f}</h2>
+            <div style="background-color: #eaf4ff; padding: 30px; border-radius: 15px; border-left: 8px solid #3A86FF; text-align: center;">
+                <h2 style="color: #3A86FF;">💰 Precio Estimado: ${precio_predicho:,.2f}</h2>
             </div>
             """, unsafe_allow_html=True)
 
-            st.markdown("---")
-            col1, col2, col3 = st.columns(3)
-
-            with col1:
-                st.metric("📈 Precio Promedio", f"${avg_price:,.2f}")
-
-            with col2:
-                st.metric(f"📊 Precio Medio para {closest_carat} Quilates", f"${price_for_closest_carat:,.2f}")
-
-            with col3:
-                st.metric(f"🔍 Precio Medio para {cut} Cut", f"${price_for_closest_cut:,.2f}")
-
+            # =================== Gráfico de Comparación ===================
+            st.markdown("### 📊 Comparación con Datos Reales")
+            avg_price = df.groupby("carat")["price"].mean().reset_index()
+            
+            fig = px.scatter(avg_price, x="carat", y="price", trendline="ols",
+                            title="Precio Real Promedio vs. Precio Predicho",
+                            labels={"carat": "Quilates", "price": "Precio ($)"})
+            
+            fig.add_scatter(x=[carat], y=[precio_predicho], mode='markers', 
+                            marker=dict(color='red', size=12), 
+                            name='Predicción')
+            
+            st.plotly_chart(fig, use_container_width=True)
+            
         except Exception as e:
-            st.error(f"❌ Error al realizar la predicción: {e}")
+            st.error(f"❌ Error en la predicción: {e}")
 
 # =================== CLASIFICACIÓN ===================
 if seccion == "⚡ Clasificación":
